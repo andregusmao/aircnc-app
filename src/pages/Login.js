@@ -1,69 +1,115 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {
-    View,
-    Image,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    StyleSheet
+  View,
+  KeyboardAvoidingView,
+  Platform,
+  Image,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  // AsyncStorage,
 } from 'react-native';
+import {AsyncStorage} from '@react-native-community/async-storage';
 
-import Logo from '../assets/logo.png';
+import api from '../services/api';
 
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center'
-    },
-    form: {
-        alignSelf: 'stretch',
-        paddingHorizontal: 30,
-        marginTop: 30
-    },
-    label: {
-        fontWeight: 'bold',
-        color: '#444',
-        marginBottom: 8
-    },
-    input: {
-        borderWidth: 1,
-        borderColor: '#ddd',
-        paddingHorizontal: 20,
-        fontSize: 16,
-        color: '#444',
-        height: 44,
-        marginBottom: 20,
-        borderRadius: 2
-    }
-});
+import logo from '../assets/logo.png';
 
-const Login = () => {
-    return (<View style={styles.container}>
-        <Image source={Logo} />
+const Login = ({navigation}) => {
+  const [email, setEmail] = useState('');
+  const [techs, setTechs] = useState('');
 
-        <View style={styles.form}>
-            <Text style={styles.label}>SEU E-MAIL *</Text>
-            <TextInput
-                style={styles.input}
-                placeholder="seu e-mail"
-                placeholderTextColor="#999"
-                keyboardType="email-address"
-                autoCapitalize="none"
-                autoCorrect={false} />
-            <Text style={styles.label}>TECNOLOGIAS *</Text>
-            <TextInput
-                style={styles.input}
-                placeholder="tecnologias de interesse"
-                placeholderTextColor="#999"
-                autoCapitalize="words"
-                autoCorrect={false} />
-            <TouchableOpacity style={styles.button}>
-                <Text style={styles.buttonText}>Encontrar Spots</Text>
-            </TouchableOpacity>
-        </View>
-    </View>);
+  const handleSubmit = async () => {
+    const response = await api.post('/sessions', {
+      email,
+    });
+
+    const {_id} = response.data;
+
+    await AsyncStorage.setItem('user', _id);
+    await AsyncStorage.setItem('techs', techs);
+
+    navigation.navigate('List');
+  };
+
+  return (
+    <KeyboardAvoidingView
+      style={styles.container}
+      enabled={Platform.OS === 'ios'}
+      behavior="padding">
+      <Image source={logo} />
+
+      <View style={styles.form}>
+        <Text style={styles.label}>SEU E-MAIL *</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="seu e-mail"
+          placeholderTextColor="#999"
+          keyboardType="email-address"
+          autoCapitalize="none"
+          autoCorrect={false}
+          value={email}
+          onChangeText={setEmail}
+        />
+
+        <Text style={styles.label}>TECNOLOGIAS *</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="tecnologias de interesse"
+          placeholderTextColor="#999"
+          autoCapitalize="words"
+          autoCorrect={false}
+          value={techs}
+          onChangeText={setTechs}
+        />
+
+        <TouchableOpacity style={styles.button} onPress={handleSubmit}>
+          <Text style={styles.buttonText}>Encontrar Spots</Text>
+        </TouchableOpacity>
+      </View>
+    </KeyboardAvoidingView>
+  );
 };
 
-export default Login;
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  form: {
+    alignSelf: 'stretch',
+    paddingHorizontal: 30,
+    marginTop: 30,
+  },
+  label: {
+    fontWeight: 'bold',
+    color: '#444',
+    marginBottom: 8,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#ddd',
+    paddingHorizontal: 20,
+    fontSize: 16,
+    color: '#444',
+    height: 44,
+    marginBottom: 20,
+    borderRadius: 2,
+  },
+  button: {
+    height: 42,
+    backgroundColor: '#f05a5b',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 2,
+  },
+  buttonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+});
 
+export default Login;
